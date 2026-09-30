@@ -1,0 +1,13 @@
+{
+  "name": "mindmaped",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "mobile": "npm --prefix apps/mobile start",
+    "mobile:ios": "npm --prefix apps/mobile run ios",
+    "mobile:android": "npm --prefix apps/mobile run android",
+    "mobile:typecheck": "npm --prefix apps/mobile run typecheck",
+    "api": "cd apps/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "api:test": "cd apps/api && pytest"
+  }
+}

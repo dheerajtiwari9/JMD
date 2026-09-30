@@ -1,0 +1,30 @@
+[project]
+name = "mindmaped-api"
+version = "0.1.0"
+description = "Privacy-conscious learning workspace API MVP"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+	"fastapi>=0.115,<1.0",
+	"uvicorn[standard]>=0.30,<1.0",
+	"python-dotenv>=1.0,<2.0",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+httpx2 = ">=2.13,<3.0"
+pytest = ">=8.0,<9.0"
+ruff = ">=0.11,<1.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP"]

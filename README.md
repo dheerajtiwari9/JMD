@@ -148,77 +148,107 @@ MindMapEd is designed around the heightened duty of care required when working w
 
 ## Getting Started
 
-The repository is currently being established. The commands below describe the intended local development workflow.
+This repository contains a runnable starter MVP: an Expo React Native student app and a FastAPI demo API. Demo records are synthetic and held in API memory; restarting the API resets goal and consent changes. PostgreSQL is available for local infrastructure, but database persistence and authentication are not wired into this MVP yet.
 
 ### Prerequisites
 
-- Node.js 20+ and npm 10+
-- Python 3.10+
-- Docker Desktop and Docker Compose
-- React Native CLI prerequisites for iOS and Android
-- Xcode (macOS, for iOS development) and Android Studio (for Android development)
-- Git
+- Python 3.14.7 (API)
+- Poetry 2.x
+- Node.js 20+ and npm 10+ (mobile app)
+- Expo Go or Xcode / Android Studio (mobile preview / simulators)
+- Docker Desktop (optional PostgreSQL service)
 
-### 1. Clone and enter the repository
+### 1. Start the API
 
 ```bash
-git clone https://github.com/your-org/mindmaped.git
-cd mindmaped
+cd apps/api
+poetry env use python3.14
+poetry install
+cp .env.example .env
+poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 2. Start infrastructure
+The API is available at `http://localhost:8000`; interactive endpoint docs are at `http://localhost:8000/docs`. Try `GET /health`, `GET /api/v1/dashboard`, `GET /api/v1/goals`, and `GET /api/v1/consent`.
+
+### 2. Run the mobile client
+
+In a second terminal, from the repository root:
+
+```bash
+npm --prefix apps/mobile install
+npm run mobile
+```
+
+Scan the Expo QR code with Expo Go, or press `i` / `a` in the Expo terminal to launch a simulator. For Android emulators, set `EXPO_PUBLIC_API_URL=http://10.0.2.2:8000/api/v1` in `apps/mobile/.env`; iOS Simulator can use the default `localhost` URL. For a physical device, use your development computer's LAN IP address instead of `localhost`.
+
+The app includes clearly marked synthetic sample data when the API is unavailable. The Today, Progress, Goals, and Profile tabs are available; goal completion and new goals currently live in app state and reset on restart. This MVP does not implement authentication or production persistence.
+
+Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` when the default is not suitable:
+
+```dotenv
+EXPO_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+Use `http://10.0.2.2:8000/api/v1` for an Android emulator. A physical device must use the development computer's LAN IP address, and both devices must be on the same network. The current mobile experience uses synthetic demo records only; it does not collect real student information or implement AI, psychology, authentication, or PostgreSQL persistence.
+
+### 3. Optional local PostgreSQL
+
+Start the database when preparing to work on persistence:
 
 ```bash
 docker compose up -d postgres
 ```
 
-### 3. Configure the API
+The connection string is documented in `apps/api/.env.example`. The current MVP intentionally does not store demo student records in PostgreSQL.
+
+### Checks
 
 ```bash
-cd apps/api
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload
+cd apps/api && poetry run pytest
+poetry run ruff check app tests
+poetry run ruff format --check app tests
+cd ../..
+npm --prefix apps/mobile run typecheck
 ```
 
-### 4. Configure and run the mobile client
+See [setup.md](setup.md) for Poetry installation, dependency management, linting, and the full API folder layout.
 
-In a second terminal:
+### API structure
 
-```bash
-cd apps/mobile
-npm ci
-npm start
+The API uses a feature-oriented, layered layout. URL versioning is mounted in `app/main.py`; each version owns its router and endpoint modules, so new versions can coexist without mixing contracts.
+
+```text
+apps/api/
+├── app/
+│   ├── api/
+│   │   └── v1/
+│   │       ├── api.py            # Composes the v1 router
+│   │       └── endpoints/        # HTTP route handlers by feature
+│   ├── core/                     # Application configuration
+│   ├── repositories/             # Demo data access (in-memory only)
+│   ├── schemas/                  # Request and response models
+│   ├── services/                 # Feature/business operations
+│   └── main.py                   # FastAPI app, middleware, router mounting
+└── tests/                        # API tests
 ```
 
-Then launch a platform target from the React Native CLI or Metro prompt:
-
-```bash
-npm run ios
-# or
-npm run android
-```
+Versioned endpoints are under `/api/v1` (for example, `/api/v1/goals`). Keep transport concerns in endpoint modules, validation and API shapes in schemas, and data access behind repositories. The current in-memory repository is a development adapter, not a production persistence layer.
 
 ### Environment variables
 
-Create `apps/api/.env` locally. Never commit real secrets.
+Copy `apps/api/.env.example` to `apps/api/.env` and `apps/mobile/.env.example` to `apps/mobile/.env` as needed. Never commit real secrets.
 
 ```dotenv
 APP_ENV=development
 API_HOST=0.0.0.0
 API_PORT=8000
-DATABASE_URL=postgresql+psycopg://mindmaped:mindmaped@localhost:5432/mindmaped
-JWT_SECRET_KEY=replace-with-a-local-development-secret
-CORS_ORIGINS=http://localhost:8081
-MODEL_PROVIDER=local
-MODEL_VERSION=development
-SENTRY_DSN=
-PUSH_NOTIFICATIONS_ENABLED=false
+CORS_ORIGINS=http://localhost:8081,http://localhost:19006
+DATABASE_URL=postgresql+psycopg://mindmaped:mindmaped_dev_only@localhost:5432/mindmaped
 ```
 
-For mobile development, use the platform-specific API URL: the Android emulator commonly reaches the host at `10.0.2.2`, while iOS Simulator can generally use `localhost`.
+`DATABASE_URL` is reserved for the planned persistence layer and is not read by the current API.
+
+The app only presents synthetic sample student information. Do not enter real student data: authentication, role/consent authorization, durable storage, retention/deletion, and safeguarding workflows are not implemented. Well-being inference and collection are deliberately not part of this MVP.
 
 ## Roadmap
 

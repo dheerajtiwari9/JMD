@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "MindMapEd",
+    "slug": "mindmaped",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F7FB",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F6F7FB"
+      }
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F7FB"
+        }
+      ]
+    ]
+  }
+}

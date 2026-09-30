@@ -1,0 +1,41 @@
+name: API CI
+
+on:
+  push:
+    paths:
+      - "apps/api/**"
+      - "setup.md"
+      - ".github/workflows/api-ci.yml"
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "setup.md"
+      - ".github/workflows/api-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: poetry
+          cache-dependency-path: apps/api/poetry.lock
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install locked dependencies
+        run: poetry sync --no-interaction
+      - name: Run tests
+        run: poetry run pytest
+      - name: Lint
+        run: poetry run ruff check app tests
+      - name: Check formatting
+        run: poetry run ruff format --check app tests
