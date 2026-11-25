@@ -24,13 +24,13 @@ jobs:
         working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
           cache: poetry
           cache-dependency-path: apps/api/poetry.lock
-      - name: Install Poetry
-        run: pipx install poetry
       - name: Install locked dependencies
         run: poetry sync --no-interaction
       - name: Run tests
